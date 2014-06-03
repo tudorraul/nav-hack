@@ -1,0 +1,80 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
+
+<html>
+<head>
+    <title>Nav test</title>
+    <script type="text/javascript" src="./js/underscore-min.js"></script>
+    <script type="text/javascript" src="./js/knockout.js"></script>
+    <style>
+        .selected {
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="gs-container" data-bind="foreach: sections">        
+    <div>
+        <a data-bind="
+            css: {selected: selected},
+            click: select,
+            text: name"></a>
+        <span class="subs" data-bind="foreach: subs">
+            | <a class="subs__item" data-bind="
+                css: {selected: selected},
+                click: select,
+                text: name"></a>
+        </span>
+    </div>
+</div>
+
+<script>
+    var tree =  [
+        { "name": "home", "subs": []},
+        { "name": "UK", "subs": []},
+        { "name": "world", "subs": [{"name":"europe"},{"name":"US"},{"name":"americas"},{"name":"asia"},{"name":"australia"},{"name":"africa"},{"name":"middle east"}]},
+        { "name": "sport", "subs": [{"name":"football"},{"name":"world cup"},{"name":"rugby union"},{"name":"rugby league"},{"name":"cricket"},{"name":"tennis"},{"name":"cycling"},{"name":"boxing"},{"name":"US sports"},{"name":"formula one"}]},
+        { "name": "football", "subs": [{"name":"world cup"},{"name":"live scores"},{"name":"tables"},{"name":"competitions"},{"name":"results"},{"name":"fixtures"},{"name":"clubs"}]},
+        { "name": "comment", "subs": []},
+        { "name": "culture", "subs": [{"name":"film"},{"name":"tv & radio"},{"name":"music"},{"name":"books"},{"name":"art & design"},{"name":"stage"}]},
+        { "name": "economy", "subs": [{"name":"markets"},{"name":"companies"},{"name":"media"}]},
+        { "name": "life", "subs": [{"name":"food"},{"name":"health"},{"name":"love & sex"},{"name":"family"},{"name":"women"},{"name":"home & garden"}]},
+        { "name": "environment", "subs": [{"name":"cities"},{"name":"development"}]},
+        { "name": "tech", "subs": [{"name":"games"}]},
+        { "name": "money", "subs": [{"name":"property"},{"name":"savings"},{"name":"borrowing"},{"name":"careers"}]},
+        { "name": "travel", "subs": [{"name":"UK"},{"name":"europe"},{"name":"US"}]},
+        { "name": "fashion", "subs": []},
+        { "name": "science", "subs": []},
+        { "name": "education", "subs": []}],
+
+        model = {
+            sections: ko.observableArray(tree.map(function(s) { return new Section(s); } ) )
+        };
+
+    function Section(opts) {
+        this.selected = ko.observable();
+        this.name = opts.name;        
+        this.subs = ko.observableArray(opts.subs.map(function(s) {return new Sub(s)}));        
+
+        this.select = function() {
+            model.sections.remove(this);
+            model.sections.unshift(this);
+            this.selected(true);
+        };
+    };
+
+    function Sub(opts) {
+        this.selected = ko.observable();
+        this.name = opts.name;
+
+        this.select = function() {
+            this.selected(true);
+        };
+    };
+
+    ko.applyBindings(model);
+</script>
+
+</body>
+</html>
