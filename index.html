@@ -24,15 +24,16 @@
         .section__name {
             font-weight: bold;
             background-color: #eeeeee;
+            color: #005689;
         }
 
         .all {
             position: absolute;
             top: 0;
             left: 0;
-            background-image: url(images/hamburger3.png);
+            background-image: url(images/hamburger.png);
             background-repeat: no-repeat;
-            background-color: #cccccc;
+            background-color: #eeeeee;
             height: 24px;
             width: 26px;
         }
@@ -47,8 +48,8 @@
             max-height: inherit;
         }
         .selected {
-            font-weight: bold;
             background-color: #eeeeee;
+            color: #005689;
         }
     </style>
 </head>
@@ -99,9 +100,11 @@
     model.expanded = ko.observable(false);
 
     model.open   = function() { model.expanded(true); };
-    model.close  = function() { model.expanded(false); };
-    model.toggle = function() { model.expanded(!model.expanded()); };
 
+    model.close  = function() { model.expanded(false); };
+    
+    model.toggle = function() { model.expanded(!model.expanded()); };
+    
     function Section(opts, index) {
         var self = this;
 
@@ -112,14 +115,19 @@
         }));        
 
         this.select = function(sub) {
-            deSelectAll(model.sections());
+            var deSelectedNum = deSelectAll(model.sections());
+            
+            self.selected(true);
+            
+            if (deSelectedNum === 1 && model.sections()[0] === sub) {
+                model.toggle();
+                return;
+            }
 
             if (sub && sub !== self) {
                 sub.selected(true);
                 self.subs(spin(self.subs(), sub));
             } 
-
-            self.selected(true);
 
             model.sections.remove(this);
             model.sections.unshift(this);
@@ -135,12 +143,18 @@
     };
 
     function deSelectAll(items) {
+        var count = 0;
+
         items.forEach(function(i) {
+            count += !!i.selected();
             i.selected(false);
+
             if (i.subs) {
-                deSelectAll(i.subs());
+                count += deSelectAll(i.subs());
             }
         });
+
+        return count;
     };
 
     function spin(arr, obj) {
