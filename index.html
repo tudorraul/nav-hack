@@ -16,7 +16,7 @@
         }
         .section a {
             display: inline-block;
-            padding: 2px 5px 0 5px;
+            padding: 3px 5px 0 5px;
             height: 22px;
             margin: 0 2px 2px 0;
             cursor: pointer;
@@ -34,14 +34,14 @@
             background-image: url(images/hamburger.png);
             background-repeat: no-repeat;
             background-color: #eeeeee;
-            height: 24px;
+            height: 25px;
             width: 26px;
         }
         .tree {
             position: absolute;
             top: 0;
             left: 28px;
-            max-height: 24px;
+            max-height: 25px;
             overflow: hidden;
         }
         .expanded {
@@ -137,9 +137,18 @@
     };
 
     function Sub(opts, parent) {
+        var self = this;
+
         this.selected = ko.observable();
         this.name = opts.name;
-        this.select = function() { parent.select(this); };
+
+        this.select = function() {
+            if (self.selected()) {
+                model.toggle();
+            } else {
+                parent.select(this);
+            }
+        };
     };
 
     function deSelectAll(items) {
