@@ -3,35 +3,80 @@
 <html>
 <head>
     <title>Nav test</title>
-    <script type="text/javascript" src="./js/underscore-min.js"></script>
     <script type="text/javascript" src="./js/knockout.js"></script>
     <style>
+        .nav{
+            position: relative;
+            font-size: 16px;
+            font-family: Georgia;
+            text-transform: capitalize;
+        }
+        .section {
+            margin: 0 0 6px 0;
+        }
+        .section a {
+            display: inline-block;
+            padding: 2px 5px 0 5px;
+            height: 22px;
+            margin: 0 2px 2px 0;
+            cursor: pointer;
+        }
+        .section__name {
+            font-weight: bold;
+            background-color: #eeeeee;
+        }
+
+        .all {
+            position: absolute;
+            top: 0;
+            left: 0;
+            background-image: url(images/hamburger3.png);
+            background-repeat: no-repeat;
+            background-color: #cccccc;
+            height: 24px;
+            width: 26px;
+        }
+        .tree {
+            position: absolute;
+            top: 0;
+            left: 28px;
+            max-height: 24px;
+            overflow: hidden;
+        }
+        .expanded {
+            max-height: inherit;
+        }
         .selected {
             font-weight: bold;
+            background-color: #eeeeee;
         }
     </style>
 </head>
 
 <body>
 
-<div class="gs-container" data-bind="foreach: sections">        
-    <div>
-        <a data-bind="
-            css: {selected: selected},
-            click: select,
-            text: name"></a>
-        <span class="subs" data-bind="foreach: subs">
-            | <a class="subs__item" data-bind="
+<div class="nav">
+    <div class="all" data-bind="click: toggle"></div>
+    <div class="tree" data-bind="
+        css: {expanded: expanded},
+        foreach: sections">        
+        <div class="section">
+            <a class="section__name" data-bind="
                 css: {selected: selected},
                 click: select,
-                text: name"></a>
-        </span>
+                text: name"></a
+            ><span class="subs" data-bind="foreach: subs"
+                ><a class="subs__item" data-bind="
+                    css: {selected: selected},
+                    click: select,
+                    text: name"></a></span>
+        </div>
     </div>
 </div>
 
 <script>
-    var tree =  [
-        { "name": "home", "subs": []},
+    var model = {},
+        tree =  [
         { "name": "UK", "subs": []},
         { "name": "world", "subs": [{"name":"europe"},{"name":"US"},{"name":"americas"},{"name":"asia"},{"name":"australia"},{"name":"africa"},{"name":"middle east"}]},
         { "name": "sport", "subs": [{"name":"football"},{"name":"world cup"},{"name":"rugby union"},{"name":"rugby league"},{"name":"cricket"},{"name":"tennis"},{"name":"cycling"},{"name":"boxing"},{"name":"US sports"},{"name":"formula one"}]},
@@ -46,31 +91,61 @@
         { "name": "travel", "subs": [{"name":"UK"},{"name":"europe"},{"name":"US"}]},
         { "name": "fashion", "subs": []},
         { "name": "science", "subs": []},
-        { "name": "education", "subs": []}],
+        { "name": "education", "subs": []}];
 
-        model = {
-            sections: ko.observableArray(tree.map(function(s) { return new Section(s); } ) )
-        };
 
-    function Section(opts) {
-        this.selected = ko.observable();
+    model.sections = ko.observableArray(tree.map(function(s, index) { return new Section(s, index); } ) );
+
+    model.expanded = ko.observable(false);
+
+    model.open   = function() { model.expanded(true); };
+    model.close  = function() { model.expanded(false); };
+    model.toggle = function() { model.expanded(!model.expanded()); };
+
+    function Section(opts, index) {
+        var self = this;
+
+        this.selected = ko.observable(index === 0);
         this.name = opts.name;        
-        this.subs = ko.observableArray(opts.subs.map(function(s) {return new Sub(s)}));        
+        this.subs = ko.observableArray(opts.subs.map(function(s) {
+            return new Sub(s, self)
+        }));        
 
-        this.select = function() {
+        this.select = function(sub) {
+            deSelectAll(model.sections());
+
+            if (sub && sub !== self) {
+                sub.selected(true);
+                self.subs(spin(self.subs(), sub));
+            } 
+
+            self.selected(true);
+
             model.sections.remove(this);
             model.sections.unshift(this);
-            this.selected(true);
+            
+            model.close();
         };
     };
 
-    function Sub(opts) {
+    function Sub(opts, parent) {
         this.selected = ko.observable();
         this.name = opts.name;
+        this.select = function() { parent.select(this); };
+    };
 
-        this.select = function() {
-            this.selected(true);
-        };
+    function deSelectAll(items) {
+        items.forEach(function(i) {
+            i.selected(false);
+            if (i.subs) {
+                deSelectAll(i.subs());
+            }
+        });
+    };
+
+    function spin(arr, obj) {
+        var first = arr[0];
+        return first === obj ? arr : spin(arr.slice(1).concat(first), obj);
     };
 
     ko.applyBindings(model);
