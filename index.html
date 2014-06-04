@@ -1,5 +1,4 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN">
-
+<!DOCTYPE html>
 <html>
 <head>
     <title>Nav test</title>
@@ -69,12 +68,11 @@
         }
     </style>
 </head>
-
 <body>
 
 <div class="nav nav--top">
     <a class="all" data-bind="
-        click: toggleExpanded">all sections</a>
+        click: expander">all sections</a>
     &middot;
     <a class="">search</a>
     &middot;
@@ -83,7 +81,7 @@
 
 <div class="nav">
     <div class="ellipsis" data-bind="
-        click: toggleExpandedSub">...</div>
+        click: expanderSub">...</div>
 
     <div class="tree" data-bind="
         css: {expanded: expanded() || expandedSub()},
@@ -106,43 +104,41 @@
 </div>
 
 <script>
-    var pos = queryArgs(),
-        model = {},
-        tree =  [
-        { "name": "UK", "subs": []},
-        { "name": "world", "subs": [{"name":"europe"},{"name":"US"},{"name":"americas"},{"name":"asia"},{"name":"australia"},{"name":"africa"},{"name":"middle east"}]},
-        { "name": "sport", "subs": [{"name":"football"},{"name":"world cup"},{"name":"rugby union"},{"name":"rugby league"},{"name":"cricket"},{"name":"tennis"},{"name":"cycling"},{"name":"boxing"},{"name":"US sports"},{"name":"formula one"}]},
-        { "name": "football", "subs": [{"name":"world cup"},{"name":"live scores"},{"name":"tables"},{"name":"competitions"},{"name":"results"},{"name":"fixtures"},{"name":"clubs"}]},
-        { "name": "comment", "subs": []},
-        { "name": "culture", "subs": [{"name":"film"},{"name":"tv & radio"},{"name":"music"},{"name":"books"},{"name":"art & design"},{"name":"stage"}]},
-        { "name": "economy", "subs": [{"name":"markets"},{"name":"companies"},{"name":"media"}]},
-        { "name": "life", "subs": [{"name":"food"},{"name":"health"},{"name":"love & sex"},{"name":"family"},{"name":"women"},{"name":"home & garden"}]},
-        { "name": "environment", "subs": [{"name":"cities"},{"name":"development"}]},
-        { "name": "tech", "subs": [{"name":"games"}]},
-        { "name": "money", "subs": [{"name":"property"},{"name":"savings"},{"name":"borrowing"},{"name":"careers"}]},
-        { "name": "travel", "subs": [{"name":"UK"},{"name":"europe"},{"name":"US"}]},
-        { "name": "fashion", "subs": []},
-        { "name": "science", "subs": []},
-        { "name": "education", "subs": []}];
-
+    var model = {},
+        pos = queryArgs(),
+        tree = [
+            { "name": "UK", "subs": []},
+            { "name": "world", "subs": [{"name":"europe"},{"name":"US"},{"name":"americas"},{"name":"asia"},{"name":"australia"},{"name":"africa"},{"name":"middle east"}]},
+            { "name": "sport", "subs": [{"name":"football"},{"name":"world cup"},{"name":"rugby union"},{"name":"rugby league"},{"name":"cricket"},{"name":"tennis"},{"name":"cycling"},{"name":"boxing"},{"name":"US sports"},{"name":"formula one"}]},
+            { "name": "football", "subs": [{"name":"world cup"},{"name":"live scores"},{"name":"tables"},{"name":"competitions"},{"name":"results"},{"name":"fixtures"},{"name":"clubs"}]},
+            { "name": "comment", "subs": []},
+            { "name": "culture", "subs": [{"name":"film"},{"name":"tv & radio"},{"name":"music"},{"name":"books"},{"name":"art & design"},{"name":"stage"}]},
+            { "name": "economy", "subs": [{"name":"markets"},{"name":"companies"},{"name":"media"}]},
+            { "name": "life", "subs": [{"name":"food"},{"name":"health"},{"name":"love & sex"},{"name":"family"},{"name":"women"},{"name":"home & garden"}]},
+            { "name": "environment", "subs": [{"name":"cities"},{"name":"development"}]},
+            { "name": "tech", "subs": [{"name":"games"}]},
+            { "name": "money", "subs": [{"name":"property"},{"name":"savings"},{"name":"borrowing"},{"name":"careers"}]},
+            { "name": "travel", "subs": [{"name":"UK"},{"name":"europe"},{"name":"US"}]},
+            { "name": "fashion", "subs": []},
+            { "name": "science", "subs": []},
+            { "name": "education", "subs": []}
+        ];
 
     model.sections = ko.observableArray(
         spin(
-            tree.map(function(s) { return new Section(s, pos); }),
+            tree.map(function(s) { return new Item(s, pos); }),
             function(s) { return s.selected(); }
         )
     );
 
     model.expanded = ko.observable(false);
-
-    model.expandedSub = ko.observable(false);
-
-    model.toggleExpanded = function() {
+    model.expander = function() {
         model.expanded(!model.expanded());
         model.expandedSub(false);
     };
 
-    model.toggleExpandedSub = function() {
+    model.expandedSub = ko.observable(false);
+    model.expanderSub = function() {
         if (model.expanded()) {
             model.expandedSub(false);
         } else {
@@ -151,32 +147,25 @@
         model.expanded(false);
     };
 
-    function Section(opts, pos) {
-        var self = this;
-
-        this.name = opts.name;        
-        this.href = makeHref(opts.name);
-        this.selected = ko.observable(opts.name === pos.section);
-        this.subs = ko.observableArray(
-            spin(
-                opts.subs.map(function(s) {return new Sub(s, pos, self)}),
-                function(s) { return s.selected(); }
-            )
-        );
-    };
-
-    function Sub(opts, pos, parent) {
+    function Item(opts, pos, parent) {
         var self = this;
 
         this.name = opts.name;
-        this.href = makeHref(parent.name, opts.name);
-        this.selected = ko.observable(parent.selected() && opts.name === pos.sub);
+
+        this.href = makeHref((parent || opts).name, parent ? opts.name : undefined);
+
+        this.selected = ko.observable(parent ? (parent.selected() && opts.name === pos.sub) : (opts.name === pos.section));
+
+        this.subs = opts.subs ? ko.observableArray(
+            spin(
+                opts.subs.map(function(s) {return new Item(s, pos, self)}),
+                function(s) { return s.selected(); }
+            )
+        ) : undefined;
     };
 
     function makeHref(section, sub) {
-        return '?' + 
-            (section ? 'section=' + encodeURIComponent(section)  + '&' : '') + 
-            (sub ? 'sub=' + encodeURIComponent(sub) : '');
+        return '?section=' + encodeURIComponent(section)  + (sub ? '&sub=' + encodeURIComponent(sub) : '');
     };
 
     function queryArgs() {
