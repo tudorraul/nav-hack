@@ -28,7 +28,6 @@
             display: inline-block;
             padding: 2px 5px;
             height: 22px;
-            margin: 0 2px 0 0;
             cursor: pointer;
             color: #333333;
             text-decoration: none;
@@ -36,6 +35,7 @@
         a.section__name {
             font-weight: bold;
             color: #005689;
+            margin: 0 5px 0 0;
         }
         .ellipsis {
             position: absolute;
@@ -82,8 +82,6 @@
         click: toggleExpanded">all sections</a>
     &middot;
     <a class="">search</a>
-    &middot;
-    <a class="">signin</a>
     &middot;
     <a class="">etc</a>
 </div>
@@ -181,7 +179,7 @@
 
         this.href = makeHref(parent.name, opts.name);
 
-        this.selected = ko.observable(opts.name === pos.sub);
+        this.selected = ko.observable(parent.selected() && opts.name === pos.sub);
     };
 
     function makeHref(section, sub) {
