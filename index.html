@@ -51,8 +51,10 @@
             box-shadow: -5px 0 6px -3px #CCCCCC;
             height: 27px;
             border-left: 1px solid #dddddd;
+            cursor: pointer;
         }
         .all {
+            cursor: pointer;
             height: 25px;
             color: #005689;
             font-weight: bold;
@@ -153,11 +155,8 @@
         var self = this;
 
         this.name = opts.name;        
-
         this.href = makeHref(opts.name);
-
         this.selected = ko.observable(opts.name === pos.section);
-
         this.subs = ko.observableArray(
             spin(
                 opts.subs.map(function(s) {return new Sub(s, pos, self)}),
@@ -170,9 +169,7 @@
         var self = this;
 
         this.name = opts.name;
-
         this.href = makeHref(parent.name, opts.name);
-
         this.selected = ko.observable(parent.selected() && opts.name === pos.sub);
     };
 
@@ -184,6 +181,7 @@
 
     function queryArgs() {
         var obj = {};
+
         window.location.search.substring(1).split('&').forEach(function(kv) {
             obj[kv.split('=')[0]] = kv.split('=')[1] === undefined ? '' : decodeURIComponent(kv.split(/=(.+)?/)[1]);
         });
@@ -199,8 +197,6 @@
 
         return halfs.top.concat(halfs.tail);
     };
-
-    console.log(pos);
 
     ko.applyBindings(model);
 </script>
