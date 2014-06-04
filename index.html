@@ -72,10 +72,8 @@
 
 <div class="nav nav--top">
     <a class="all" data-bind="
-        click: expander">all sections</a>
-    &middot;
-    <a class="">search</a>
-    &middot;
+        click: expander">all sections</a> &middot; 
+    <a class="">search</a> &middot;
     <a class="">etc</a>
 </div>
 
@@ -88,17 +86,19 @@
         foreach: sections">
 
         <div class="section" data-bind="
-            visible: $index() === 0 || $root.expanded()">
-
-            <a class="section__name" data-bind="
+            visible: $index() === 0 || $root.expanded()"
+            ><a class="section__name" data-bind="
                 css: {selected: selected},
                 attr: {href: href},
-                text: name"></a
-            ><span class="subs" data-bind="foreach: subs"
-                ><a class="subs__item" data-bind="
+                text: name"
+            ></a
+            ><span data-bind="foreach: subs"
+                ><a data-bind="
                     css: {selected: selected},
                     attr: {href: href},
-                    text: name"></a></span>
+                    text: name"
+                ></a
+            ></span>
         </div>
     </div>
 </div>
