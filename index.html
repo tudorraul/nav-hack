@@ -22,6 +22,8 @@
             height: 22px;
             margin: 0 2px 0 0;
             cursor: pointer;
+            color: #333333;
+            text-decoration: none;
         }
         .section a.selected {
             padding: 3px 5px 0 5px;
@@ -68,19 +70,20 @@
         <div class="section">
             <a class="section__name" data-bind="
                 css: {selected: selected},
-                click: select,
+                attr: {href: href},
                 text: name"></a
             ><span class="subs" data-bind="foreach: subs"
                 ><a class="subs__item" data-bind="
                     css: {selected: selected},
-                    click: select,
+                    attr: {href: href},
                     text: name"></a></span>
         </div>
     </div>
 </div>
 
 <script>
-    var model = {},
+    var pos = queryArgs(),
+        model = {},
         tree =  [
         { "name": "UK", "subs": []},
         { "name": "world", "subs": [{"name":"europe"},{"name":"US"},{"name":"americas"},{"name":"asia"},{"name":"australia"},{"name":"africa"},{"name":"middle east"}]},
@@ -99,7 +102,12 @@
         { "name": "education", "subs": []}];
 
 
-    model.sections = ko.observableArray(tree.map(function(s, index) { return new Section(s, index); } ) );
+    model.sections = ko.observableArray(
+        spin(
+            tree.map(function(s) { return new Section(s, pos); }),
+            function(s) { return s.selected(); }
+        )
+    );
 
     model.expanded = ko.observable(false);
 
@@ -109,71 +117,58 @@
     
     model.toggle = function() { model.expanded(!model.expanded()); };
     
-    function Section(opts, index) {
+    function Section(opts, pos) {
         var self = this;
 
-        this.selected = ko.observable(index === 0);
         this.name = opts.name;        
-        this.subs = ko.observableArray(opts.subs.map(function(s) {
-            return new Sub(s, self)
-        }));        
 
-        this.select = function(sub) {
-            var deSelectedNum = deSelectAll(model.sections());
-            
-            self.selected(true);
-            
-            if (deSelectedNum === 1 && model.sections()[0] === sub) {
-                model.toggle();
-                return;
-            }
+        this.href = makeHref(opts.name);
 
-            if (sub && sub !== self) {
-                sub.selected(true);
-                self.subs(spin(self.subs(), sub));
-            } 
+        this.selected = ko.observable(opts.name === pos.section);
 
-            model.sections.remove(this);
-            model.sections.unshift(this);
-            
-            model.close();
-        };
+        this.subs = ko.observableArray(
+            spin(
+                opts.subs.map(function(s) {return new Sub(s, pos, self)}),
+                function(s) { return s.selected(); }
+            )
+        );
     };
 
-    function Sub(opts, parent) {
+    function Sub(opts, pos, parent) {
         var self = this;
 
-        this.selected = ko.observable();
         this.name = opts.name;
 
-        this.select = function() {
-            if (self.selected()) {
-                model.toggle();
-            } else {
-                parent.select(this);
-            }
-        };
+        this.href = makeHref(parent.name, opts.name);
+
+        this.selected = ko.observable(opts.name === pos.sub);
     };
 
-    function deSelectAll(items) {
-        var count = 0;
+    function makeHref(section, sub) {
+        return '?' + 
+            (section ? 'section=' + encodeURIComponent(section)  + '&' : '') + 
+            (sub ? 'sub=' + encodeURIComponent(sub) : '');
+    };
 
-        items.forEach(function(i) {
-            count += !!i.selected();
-            i.selected(false);
-
-            if (i.subs) {
-                count += deSelectAll(i.subs());
-            }
+    function queryArgs() {
+        var obj = {};
+        window.location.search.substring(1).split('&').forEach(function(kv) {
+            obj[kv.split('=')[0]] = kv.split('=')[1] === undefined ? '' : decodeURIComponent(kv.split(/=(.+)?/)[1]);
         });
-
-        return count;
+        return obj;
     };
 
-    function spin(arr, obj) {
-        var first = arr[0];
-        return first === obj ? arr : spin(arr.slice(1).concat(first), obj);
+    function spin(arr, predicate) {
+        var halfs = arr.reduce(function(acc, o) {
+                acc.found = acc.found || predicate(o);
+                acc[acc.found ? 'top' : 'tail'].push(o);
+                return acc;
+            }, {top: [], tail: [], found: false});
+
+        return halfs.top.concat(halfs.tail);
     };
+
+    console.log(pos);
 
     ko.applyBindings(model);
 </script>
