@@ -6,11 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <script type="text/javascript" src="./js/knockout.js"></script>
     <style>
-        .nav{
+        .nav {
             position: relative;
             font-size: 16px;
             font-family: Georgia;
-            text-transform: capitalize;
+            color: #333333;
+        }
+        .nav--top {
+            height: 24px;
         }
         .section {
             border-bottom: 1px solid #eeeeee;
@@ -18,10 +21,9 @@
             white-space: nowrap;
             overflow: hidden;
         }
-        .expanded .section{
+        .expanded .section {
             white-space: inherit;
         }
-        .all,
         .section a {
             display: inline-block;
             padding: 2px 5px 0 5px;
@@ -56,6 +58,7 @@
         .all {
             height: 25px;
             color: #005689;
+            font-weight: bold;
         }
         .tree {
             max-height: 25px;
@@ -77,11 +80,15 @@
 
 <body>
 
-<div class="nav">
+<div class="nav nav--top">
     <a class="all" data-bind="
-        click: toggleExpanded">All Sections</a>
+        click: toggleExpanded">all sections</a>
     &middot;
-    <a class="all">Search</a>
+    <a class="">search</a>
+    &middot;
+    <a class="">signin</a>
+    &middot;
+    <a class="">etc</a>
 </div>
 
 <div class="nav">
