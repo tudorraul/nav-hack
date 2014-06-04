@@ -105,7 +105,7 @@
 
 <script>
     var model = {},
-        pos = queryArgs(),
+        pos = queryArgs({section: 'UK'}),
         tree = [
             { "name": "UK", "subs": []},
             { "name": "world", "subs": [{"name":"europe"},{"name":"US"},{"name":"americas"},{"name":"asia"},{"name":"australia"},{"name":"africa"},{"name":"middle east"}]},
@@ -168,21 +168,22 @@
         return '?section=' + encodeURIComponent(section)  + (sub ? '&sub=' + encodeURIComponent(sub) : '');
     };
 
-    function queryArgs() {
-        var obj = {};
+    function queryArgs(defaults) {
+        return window.location.search.substring(1).split('&').reduce(function(obj, kv) {
+            var tuple = kv.split('=');
 
-        window.location.search.substring(1).split('&').forEach(function(kv) {
-            obj[kv.split('=')[0]] = kv.split('=')[1] === undefined ? '' : decodeURIComponent(kv.split(/=(.+)?/)[1]);
-        });
-        return obj;
+            obj[tuple[0]] = tuple[1] === undefined ? '' : decodeURIComponent(tuple[1]);
+            return obj;
+        }, defaults || {});
     };
 
     function spin(arr, predicate) {
-        var halfs = arr.reduce(function(acc, o) {
-                acc.found = acc.found || predicate(o);
-                acc[acc.found ? 'top' : 'tail'].push(o);
+        var found,
+            halfs = arr.reduce(function(acc, o) {
+                found = found || predicate(o);
+                acc[found ? 'top' : 'tail'].push(o);
                 return acc;
-            }, {top: [], tail: [], found: false});
+            }, {top: [], tail: []});
 
         return halfs.top.concat(halfs.tail);
     };
