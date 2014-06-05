@@ -4,6 +4,7 @@
     <title>Nav test</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <script type="text/javascript" src="./js/knockout.js"></script>
+    <script type="text/javascript" src="http://code.jquery.com/jquery-2.1.1.min.js"></script>
     <style>
         .nav {
             position: relative;
@@ -81,11 +82,13 @@
         css: {expanded: expanded() || expandedSub()},
         foreach: sections">
 
-        <!-- ko if: $index() === 0 || $root.expanded() -->
+        <!-- ko if: $index() === $root.getIndex() || $root.expanded() -->
             <div class="section">
                 <a class="section__name" data-bind="
                     css: {selected: selected},
-                    attr: {href: href},
+                    attr: {
+                        name: name,
+                        href: href},
                     text: name"
                 ></a
                 ><span data-bind="foreach: subs"
@@ -99,6 +102,8 @@
         <!-- /ko -->
     </div>
 </div>
+
+<div style="height:2000px"></div>
 
 <script>
     var model = {},
@@ -122,16 +127,27 @@
         ];
 
     model.sections = ko.observableArray(
-        spin(
-            tree.map(function(s) { return new Item(s, pos); }),
-            function(s) { return s.selected(); }
-        )
+        tree.map(function(s) { return new Item(s, pos); })
     );
+
+    model.getIndex = function() {
+        var idx = 0;
+        tree.forEach(function(s,i){
+            if(s.name === pos.section) {
+                idx = i;
+            }
+        });
+        return idx;
+    };
 
     model.expanded = ko.observable(false);
     model.expander = function() {
         model.expanded(!model.expanded());
         model.expandedSub(false);
+
+        $('html, body').animate({
+            scrollTop: $(".selected").offset().top -30
+        }, 500);
     };
 
     model.expandedSub = ko.observable(false);
